@@ -70,23 +70,22 @@ app.post("/crawl", async (c) => {
   // Extract meta tags (OG, Twitter, standard meta)
   const metaTags = extractMetaTags(document);
 
-  // Build metadata array with Readability fields and meta tags
-  const metadata: Array<{ key: string; content: string | number | any }> = [];
+  // Build metadata object (key-value pairs) with Readability fields and meta tags
+  const metadata: Record<string, string | number | any> = {};
 
   // Add Readability-extracted fields
-  if (article.title) metadata.push({ key: "title", content: article.title });
-  if (article.excerpt)
-    metadata.push({ key: "excerpt", content: article.excerpt });
-  if (article.byline) metadata.push({ key: "byline", content: article.byline });
-  if (article.siteName)
-    metadata.push({ key: "siteName", content: article.siteName });
-  if (article.publishedTime)
-    metadata.push({ key: "publishedTime", content: article.publishedTime });
-  if (article.dir) metadata.push({ key: "dir", content: article.dir });
-  if (article.length) metadata.push({ key: "length", content: article.length });
+  if (article.title) metadata.title = article.title;
+  if (article.excerpt) metadata.excerpt = article.excerpt;
+  if (article.byline) metadata.byline = article.byline;
+  if (article.siteName) metadata.siteName = article.siteName;
+  if (article.publishedTime) metadata.publishedTime = article.publishedTime;
+  if (article.dir) metadata.dir = article.dir;
+  if (article.length) metadata.length = article.length;
 
   // Add all meta tags from HTML
-  metadata.push(...metaTags);
+  metaTags.forEach((item) => {
+    metadata[item.key] = item.content;
+  });
 
   // Helper function to convert HTML to markdown
   function htmlToMarkdown(htmlContent: string): string {
@@ -98,6 +97,12 @@ app.post("/crawl", async (c) => {
         codeBlockStyle: "fenced",
         emDelimiter: "*",
         strongDelimiter: "**",
+      });
+
+      // Remove script tags and other noise
+      turndownService.addRule("removeScripts", {
+        filter: ["script", "style", "noscript"],
+        replacement: () => "",
       });
 
       // Preserve fenced code blocks
@@ -136,20 +141,13 @@ app.post("/crawl", async (c) => {
     }
   }
 
-  // Convert original HTML to markdown (without Readability)
-  const markdown = htmlToMarkdown(html);
+  // Convert Readability-extracted content to markdown (clean content, no scripts/nav)
+  const markdown = htmlToMarkdown(article.content);
 
-  // Convert Readability content to markdown
-  const contentMarkdown = htmlToMarkdown(article.content);
-
+  // Return in Firecrawl format
   return c.json({
-    url,
+    markdown,
     metadata,
-    html, // Original HTML
-    content: article.content, // Readability extracted HTML
-    textContent: article.textContent,
-    markdown, // Markdown from original HTML
-    contentMarkdown, // Markdown from Readability content
   });
 });
 

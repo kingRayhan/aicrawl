@@ -6,5 +6,5 @@ POST {{url}}/crawl
 Content-Type: application/json
 
 {
-  "url": "https://www.techdiary.dev"
+  "url": "https://filejar.dev/"
 }
