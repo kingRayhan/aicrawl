@@ -1,0 +1,23 @@
+{
+  "name": "graphcrawl",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "bun src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@mozilla/readability": "^0.6.0",
+    "@types/jsdom": "^27.0.0",
+    "hono": "^4.11.3",
+    "jsdom": "^27.4.0",
+    "playwright": "^1.57.0",
+    "turndown": "^7.2.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
+  }
+}
