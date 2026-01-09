@@ -1,9 +1,10 @@
+# @url = https://aicrawl.graphland-dev.workers.dev
 @url = http://localhost:8787
 
-# Crawl a website
+
 POST {{url}}/crawl
 Content-Type: application/json
 
 {
-  "url": "https://www.shoaib.sh/articles/use-cloudflare-tunnel-to-share-local-development"
+  "url": "https://www.techdiary.dev"
 }

@@ -88,61 +88,68 @@ app.post("/crawl", async (c) => {
   // Add all meta tags from HTML
   metadata.push(...metaTags);
 
-  // Convert HTML to markdown
-  let markdown = "";
-  try {
-    // Wrap the article content in a proper HTML structure for parsing
-    const wrappedHtml = `<html><body>${article.content}</body></html>`;
-    const { document: articleDoc } = parseHTML(wrappedHtml);
+  // Helper function to convert HTML to markdown
+  function htmlToMarkdown(htmlContent: string): string {
+    try {
+      const wrappedHtml = `<html><body>${htmlContent}</body></html>`;
+      const { document: doc } = parseHTML(wrappedHtml);
 
-    const turndownService = new TurndownService({
-      codeBlockStyle: "fenced",
-      emDelimiter: "*",
-      strongDelimiter: "**",
-    });
+      const turndownService = new TurndownService({
+        codeBlockStyle: "fenced",
+        emDelimiter: "*",
+        strongDelimiter: "**",
+      });
 
-    // Preserve fenced code blocks
-    turndownService.addRule("fencedCodeBlock", {
-      filter(node) {
-        return (
-          node.nodeName === "PRE" &&
-          node.firstChild &&
-          node.firstChild.nodeName === "CODE"
-        );
-      },
-      replacement(content, node) {
-        const code = node.textContent || "";
-        return `\n\n\`\`\`\n${code}\n\`\`\`\n\n`;
-      },
-    });
+      // Preserve fenced code blocks
+      turndownService.addRule("fencedCodeBlock", {
+        filter(node) {
+          return (
+            node.nodeName === "PRE" &&
+            node.firstChild &&
+            node.firstChild.nodeName === "CODE"
+          );
+        },
+        replacement(content, node) {
+          const code = node.textContent || "";
+          return `\n\n\`\`\`\n${code}\n\`\`\`\n\n`;
+        },
+      });
 
-    // Preserve tables as HTML
-    turndownService.addRule("tables", {
-      filter: ["table"],
-      replacement(content, node) {
-        return `\n\n${(node as HTMLElement).outerHTML}\n\n`;
-      },
-    });
+      // Preserve tables as HTML
+      turndownService.addRule("tables", {
+        filter: ["table"],
+        replacement(content, node) {
+          return `\n\n${(node as HTMLElement).outerHTML}\n\n`;
+        },
+      });
 
-    // Convert the body content to markdown
-    if (articleDoc.body) {
-      markdown = turndownService.turndown(articleDoc.body);
-    } else {
-      // Fallback: try documentElement
-      markdown = turndownService.turndown(articleDoc.documentElement);
+      // Convert the body content to markdown
+      if (doc.body) {
+        return turndownService.turndown(doc.body);
+      } else {
+        // Fallback: try documentElement
+        return turndownService.turndown(doc.documentElement);
+      }
+    } catch (error) {
+      console.error("Markdown conversion error:", error);
+      return "";
     }
-  } catch (error) {
-    // If Turndown fails, log error but don't fail the request
-    console.error("Markdown conversion error:", error);
-    markdown = "";
   }
+
+  // Convert original HTML to markdown (without Readability)
+  const markdown = htmlToMarkdown(html);
+
+  // Convert Readability content to markdown
+  const contentMarkdown = htmlToMarkdown(article.content);
 
   return c.json({
     url,
     metadata,
-    html: article.content,
+    html, // Original HTML
+    content: article.content, // Readability extracted HTML
     textContent: article.textContent,
-    markdown,
+    markdown, // Markdown from original HTML
+    contentMarkdown, // Markdown from Readability content
   });
 });
 
