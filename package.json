@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "bun src/index.ts"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "cf-types": "wrangler types"
   },
   "keywords": [],
   "author": "",
@@ -14,10 +16,12 @@
     "@types/jsdom": "^27.0.0",
     "hono": "^4.11.3",
     "jsdom": "^27.4.0",
-    "playwright": "^1.57.0",
     "turndown": "^7.2.2"
   },
   "devDependencies": {
-    "tsx": "^4.21.0"
+    "@cloudflare/puppeteer": "^1.0.4",
+    "@cloudflare/workers-types": "^4.20260109.0",
+    "tsx": "^4.21.0",
+    "wrangler": "^4.58.0"
   }
 }

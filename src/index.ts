@@ -1,11 +1,12 @@
-import { Hono } from "hono";
-import { chromium } from "playwright";
-import { JSDOM } from "jsdom";
+import puppeteer from "@cloudflare/puppeteer";
+import type { ExportedHandler } from "@cloudflare/workers-types";
 import { Readability } from "@mozilla/readability";
+import { Hono } from "hono";
 import { logger } from "hono/logger";
+import { JSDOM } from "jsdom";
 import TurndownService from "turndown";
 
-const app = new Hono();
+const app = new Hono<{ Bindings: Env }>();
 
 app.use(logger());
 
@@ -16,10 +17,10 @@ app.post("/crawl", async (c) => {
     return c.json({ error: "url is required" }, 400);
   }
 
-  const browser = await chromium.launch({ headless: true });
+  const browser = await puppeteer.launch(c.env.CF_BROWSER);
   const page = await browser.newPage();
 
-  await page.goto(url, { waitUntil: "networkidle" });
+  await page.goto(url, { waitUntil: "networkidle2" });
   const html = await page.content();
 
   await browser.close();
@@ -28,53 +29,9 @@ app.post("/crawl", async (c) => {
   const reader = new Readability(dom.window.document);
   const article = reader.parse();
 
-  if (!article) {
-    return c.json({ error: "Failed to parse article" }, 500);
-  }
-
-  const turndownService = new TurndownService({
-    codeBlockStyle: "fenced",
-    emDelimiter: "*",
-    strongDelimiter: "**",
-  });
-
-  // Preserve fenced code blocks
-  turndownService.addRule("fencedCodeBlock", {
-    filter(node) {
-      return (
-        node.nodeName === "PRE" &&
-        node.firstChild &&
-        node.firstChild.nodeName === "CODE"
-      );
-    },
-    replacement(content, node) {
-      const code = node.textContent || "";
-      return `\n\n\`\`\`\n${code}\n\`\`\`\n\n`;
-    },
-  });
-
-  // Preserve tables as HTML
-  turndownService.addRule("tables", {
-    filter: ["table"],
-    replacement(content, node) {
-      return `\n\n${(node as HTMLElement).outerHTML}\n\n`;
-    },
-  });
-
-  const markdown = turndownService.turndown(dom.window.document);
-
-  const output = `# ${article.title || "Untitled"}
-
-${article.byline ? `*${article.byline}*\n` : ""}${
-    article.excerpt ? `> ${article.excerpt}\n` : ""
-  }
----
-
-${markdown}
-`;
-
-  return c.text(output, 200, {
-    "Content-Type": "text/markdown; charset=utf-8",
+  return c.json({
+    title: article?.title,
+    content: article?.content,
   });
 });
 
