@@ -75,10 +75,13 @@ app.post("/crawl", async (c) => {
 
   // Add Readability-extracted fields
   if (article.title) metadata.push({ key: "title", content: article.title });
-  if (article.excerpt) metadata.push({ key: "excerpt", content: article.excerpt });
+  if (article.excerpt)
+    metadata.push({ key: "excerpt", content: article.excerpt });
   if (article.byline) metadata.push({ key: "byline", content: article.byline });
-  if (article.siteName) metadata.push({ key: "siteName", content: article.siteName });
-  if (article.publishedTime) metadata.push({ key: "publishedTime", content: article.publishedTime });
+  if (article.siteName)
+    metadata.push({ key: "siteName", content: article.siteName });
+  if (article.publishedTime)
+    metadata.push({ key: "publishedTime", content: article.publishedTime });
   if (article.dir) metadata.push({ key: "dir", content: article.dir });
   if (article.length) metadata.push({ key: "length", content: article.length });
 
@@ -91,7 +94,7 @@ app.post("/crawl", async (c) => {
     // Wrap the article content in a proper HTML structure for parsing
     const wrappedHtml = `<html><body>${article.content}</body></html>`;
     const { document: articleDoc } = parseHTML(wrappedHtml);
-    
+
     const turndownService = new TurndownService({
       codeBlockStyle: "fenced",
       emDelimiter: "*",
