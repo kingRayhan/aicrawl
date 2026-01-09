@@ -6,16 +6,15 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "cf-types": "wrangler types"
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@mozilla/readability": "^0.6.0",
-    "@types/jsdom": "^27.0.0",
     "hono": "^4.11.3",
-    "jsdom": "^27.4.0",
+    "linkedom": "^0.18.12",
     "turndown": "^7.2.2"
   },
   "devDependencies": {

@@ -1,12 +1,10 @@
-import puppeteer from "@cloudflare/puppeteer";
-import type { ExportedHandler } from "@cloudflare/workers-types";
+// import puppeteer from "@cloudflare/puppeteer";
 import { Readability } from "@mozilla/readability";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
-import { JSDOM } from "jsdom";
-import TurndownService from "turndown";
+import { parseHTML } from "linkedom";
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<{ Bindings: CloudflareBindings }>();
 
 app.use(logger());
 
@@ -17,21 +15,26 @@ app.post("/crawl", async (c) => {
     return c.json({ error: "url is required" }, 400);
   }
 
-  const browser = await puppeteer.launch(c.env.CF_BROWSER);
-  const page = await browser.newPage();
+  const http = await fetch(url);
+  const html = await http.text();
 
-  await page.goto(url, { waitUntil: "networkidle2" });
-  const html = await page.content();
-
-  await browser.close();
-
-  const dom = new JSDOM(html, { url });
-  const reader = new Readability(dom.window.document);
+  // Parse HTML string into a DOM document using linkedom (works in CF Workers)
+  const { document } = parseHTML(html);
+  const reader = new Readability(document);
   const article = reader.parse();
 
+  if (!article) {
+    return c.json({ error: "Failed to parse article" }, 500);
+  }
+
   return c.json({
-    title: article?.title,
-    content: article?.content,
+    url,
+    title: article.title,
+    content: article.content,
+    textContent: article.textContent,
+    excerpt: article.excerpt,
+    byline: article.byline,
+    length: article.length,
   });
 });
 

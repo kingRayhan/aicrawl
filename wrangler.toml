@@ -1,6 +1,11 @@
 name = "graphcrawl"
 main = "src/index.ts"
-compatibility_date = "2024-01-01"
+compatibility_date = "2025-12-27"
+keep_vars = true
+observability = { enabled = true }
+compatibility_flags = ["nodejs_compat"]
+
+version_metadata = { binding = "CF_VERSION" }
 
 [browser]
 binding = "CF_BROWSER"
