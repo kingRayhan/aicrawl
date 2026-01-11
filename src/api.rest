@@ -1,10 +1,15 @@
 # @url = https://aicrawl.graphland-dev.workers.dev
 @url = http://localhost:8787
+@target_url = https://dev.to/code42cate/tech-stack-lessons-from-scaling-20x-in-a-year-1ekh
 
+### Get API root with HATEOAS links
+GET {{url}}/
 
-POST {{url}}/crawl/markdown
-Content-Type: application/json
+### Get metadata from URL
+GET {{url}}/crawl/meta?url={{target_url}}
 
-{
-  "url": "https://filejar.dev/"
-}
+### Get markdown from URL
+GET {{url}}/crawl/markdown?url={{target_url}}
+
+### Get HTML from URL
+GET {{url}}/crawl/html?url={{target_url}}
